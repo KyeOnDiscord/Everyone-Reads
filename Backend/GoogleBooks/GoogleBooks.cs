@@ -15,13 +15,14 @@ namespace EveryoneReads.Backend.GoogleBooks
         /// <returns></returns>
         public static async Task<BookSearch.Rootobject?> SearchBook(string query)
         {
-            var resp = await Http.GetAsync($"https://www.googleapis.com/books/v1/volumes?q={query}");
+            var resp = await Http.GetAsync($"https://www.googleapis.com/books/v1/volumes?maxResults=40&q={query}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<BookSearch.Rootobject>(content);
 
             }
+            throw new Exception($"Query: {query} , could not be found on Google Books");
             return null;
         }
 

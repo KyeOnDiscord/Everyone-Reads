@@ -10,12 +10,12 @@
         /// <summary>
         /// The book's Author
         /// </summary>
-        public string[] Authors { get; set; }
+        public string[] Authors { get; set; } = new string[] { };
 
         /// <summary>
         /// The book's cover's url
         /// </summary>
-        public string CoverURL { get; set; }
+        public string CoverURL { get; set; } = "";
 
         /// <summary>
         /// The book's publish date
@@ -41,6 +41,7 @@
         /// The book's title
         /// </summary>
         public string Title { get; set; }
+        public float Rating { get; set; }
 
         public BookObj() { }
         public static async Task<BookObj[]?> GetBook(string title)
@@ -53,13 +54,36 @@
                 BookObj newBook = new BookObj();
                 if (book.volumeInfo.industryIdentifiers != null)
                     newBook.ISBN13 = ConvertISBN10ToISBN13(book.volumeInfo.industryIdentifiers[0].identifier);//Doesn't matter which ISBN we select, either ISBN 10 or ISBN 13 will work because it will automatically be converted.
-                newBook.Authors = book.volumeInfo.authors;
-                newBook.CoverURL = book.volumeInfo.imageLinks.thumbnail;
-                newBook.PublishDate = book.volumeInfo.publishedDate;
-                newBook.Publisher = book.volumeInfo.publisher;
-                newBook.Language = book.volumeInfo.language;
-                newBook.PageCount = book.volumeInfo.pageCount;
-                newBook.Title = book.volumeInfo.title;
+
+                if (book.volumeInfo.authors != null)
+                    newBook.Authors = book.volumeInfo.authors;
+
+                if (book.volumeInfo.imageLinks != null)
+                {
+                    if (book.volumeInfo.imageLinks.smallThumbnail != null)
+                        newBook.CoverURL = book.volumeInfo.imageLinks.smallThumbnail;
+
+                    if (book.volumeInfo.imageLinks.thumbnail != null)
+                        newBook.CoverURL = book.volumeInfo.imageLinks.thumbnail;
+                }
+
+
+                if (book.volumeInfo.publishedDate != null)
+                    newBook.PublishDate = book.volumeInfo.publishedDate;
+                if (book.volumeInfo.publisher != null)
+                    newBook.Publisher = book.volumeInfo.publisher;
+
+                if (book.volumeInfo.language != null)
+                    newBook.Language = book.volumeInfo.language;
+
+                if (book.volumeInfo.pageCount != null)
+                    newBook.PageCount = book.volumeInfo.pageCount;
+
+                if (book.volumeInfo.title != null)
+                    newBook.Title = book.volumeInfo.title;
+                
+                if (book.volumeInfo.averageRating != null)
+                    newBook.Rating = book.volumeInfo.averageRating;
 
                 books.Add(newBook);
             }
