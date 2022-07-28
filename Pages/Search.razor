@@ -1,21 +1,19 @@
 ﻿@page "/search"
 @using EveryoneReads.Backend
-
+@inject NavigationManager NavMan
 <PageTitle>Search Books | Everyone Reads </PageTitle>
 
 
 <style>
-
-    body
-    {
-    background: linear-gradient(320deg, rgba(155,234,255,1) 0%, rgba(101,61,255,1) 0%, rgba(162,139,255,1) 100%);
+    body {
+        background: linear-gradient(320deg, rgba(155,234,255,1) 0%, rgba(101,61,255,1) 0%, rgba(162,139,255,1) 100%);
     }
 </style>
 
 
 <h3 style="color:white">Search Books</h3>
 
-<input @bind="SearchString" />
+<input @bind="SearchString" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="100" />
 <br />
 <br />
 <input @bind="MatchExact" type="checkbox"> <span style="color:white">Match Exact Title</span>
@@ -27,7 +25,11 @@
 
 @if (SearchResults != null)
 {
-    <div class="row row-cols-1 row-cols-sm-5 g-2">
+    <br />
+    <br />
+    <span style="color:white">@SearchResults.Count() results found</span>
+    <br />
+    <div class="row row-cols-1 row-cols-sm-4 g-2">
         @foreach (var book in SearchResults)
         {
             @if (MatchExact)
@@ -38,39 +40,38 @@
                 }
             }
             <div class="col">
-            <div class="card">
-                <div class="card-header">@book.Title (@book.Language)</div>
-                
-                <div class="card-body">
-                    <div class="container">
+                <div class="card">
+                    <div class="card-header">@book.Title</div>
 
-                        <div class="row">
-    <div class="col-6">
-      <img src="@book.CoverURL" class="card-img-top" alt="@book.Title's cover" style="height:128;width:auto;object-fit:contain">
-    </div>
-    <div class="col">
-      ISBN-13: @book.ISBN13
-      <br>
-      Publish Date: @book.PublishDate
-      <br>
-      Publisher: @book.Publisher
-      <br>
-      Authors:@string.Join(",",@book.Authors) 
-    </div>
-  </div>
+                    <div class="card-body">
+                        <div class="container" style="height:200px">
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <img @onclick="@(e => NavigateTo(@book.GoogleBooksID))" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
+                                </div>
+                                <div class="col">
+                                    <p>
+                                        Publish Date: @book.PublishDate
+                                        <br>
+                                        Publisher: @book.Publisher
+                                        <br>
+                                        Authors:@string.Join(",",@book.Authors)
+                                    </p>
+                                </div>
+                            </div>
 
                         </div>
-                    
-                    @*<p class="card-text">@book.Rating</p>*@
-                </div>
 
-                <div class="card-footer text-muted">
-    @book.PublishDate
-  </div>
+                    </div>
+
+                    <div class="card-footer text-muted">
+                        @book.PublishDate
+                    </div>
+                </div>
             </div>
-        </div>
         }
-        
+
     </div>
 }
 @code {
@@ -82,11 +83,17 @@
     private string? SearchString { get; set; }
     private bool MatchExact { get; set; } = false;
 
-    
     private async Task Searchbtn()
     {
         SearchResults = await BookObj.GetBook(SearchString);
-       
+        if (SearchResults == null)
+        {
+            SearchResults = new BookObj[] { };
+        }
     }
 
+    private async Task NavigateTo(string googleBooksID)
+    {
+        NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
+    }
 }

@@ -41,12 +41,22 @@
         /// The book's title
         /// </summary>
         public string Title { get; set; }
-        public float Rating { get; set; }
+        public string GoogleBooksID { get; set; }
 
         public BookObj() { }
-        public static async Task<BookObj[]?> GetBook(string title)
+        /// <summary>
+        /// Gets books from title, author, ISBN
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="count">How many books to return, max is 40</param>
+        /// <returns></returns>
+        public static async Task<BookObj[]?> GetBook(string query, int count = 40)
         {
-            var response = await GoogleBooks.GoogleBooks.SearchBook(title);
+            var response = await GoogleBooks.GoogleBooks.SearchBook(query, count);
+            if (response == null || response.items == null)
+            {
+                return null;
+            }
             List<BookObj> books = new();
 
             foreach (var book in response.items)
@@ -66,6 +76,10 @@
                     if (book.volumeInfo.imageLinks.thumbnail != null)
                         newBook.CoverURL = book.volumeInfo.imageLinks.thumbnail;
                 }
+                else
+                {
+                    newBook.CoverURL = "/NoCover.png";
+                }
 
 
                 if (book.volumeInfo.publishedDate != null)
@@ -81,9 +95,9 @@
 
                 if (book.volumeInfo.title != null)
                     newBook.Title = book.volumeInfo.title;
-                
-                if (book.volumeInfo.averageRating != null)
-                    newBook.Rating = book.volumeInfo.averageRating;
+
+                if (book.id != null)
+                    newBook.GoogleBooksID = book.id;
 
                 books.Add(newBook);
             }
@@ -93,7 +107,7 @@
 
 
         //https://isbn-information.com/convert-isbn-10-to-isbn-13.html
-        private static string ConvertISBN10ToISBN13(string ISBN10)
+        public static string ConvertISBN10ToISBN13(string ISBN10)
         {
             if (ISBN10.Length == 10)
             {
