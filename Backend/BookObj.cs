@@ -1,4 +1,8 @@
-﻿namespace EveryoneReads.Backend
+﻿using System.Drawing;
+using System.Drawing.Imaging;
+using System.Net;
+
+namespace EveryoneReads.Backend
 {
     public class BookObj
     {
@@ -42,12 +46,66 @@
         /// </summary>
         public string Title { get; set; }
         public string GoogleBooksID { get; set; }
+        public string[] Categories { get; set; } = new string[] { };
 
         public BookObj() { }
+
+
+
+        /// <summary>
+        /// Converts google's book item to this project's BookObj class.
+        /// </summary>
+        /// <param name="book"></param>
+        /// <returns></returns>
+        private static BookObj CreateBook(GoogleBooks.BookSearch.Item book)
+        {
+            BookObj newBook = new BookObj();
+            if (book.volumeInfo.industryIdentifiers != null)
+                newBook.ISBN13 = ConvertISBN10ToISBN13(book.volumeInfo.industryIdentifiers[0].identifier);//Doesn't matter which ISBN we select, either ISBN 10 or ISBN 13 will work because it will automatically be converted.
+
+            if (book.volumeInfo.authors != null)
+                newBook.Authors = book.volumeInfo.authors;
+
+            if (book.volumeInfo.imageLinks != null)
+            {
+                if (book.volumeInfo.imageLinks.smallThumbnail != null)
+                    newBook.CoverURL = book.volumeInfo.imageLinks.smallThumbnail;
+
+                if (book.volumeInfo.imageLinks.thumbnail != null)
+                    newBook.CoverURL = book.volumeInfo.imageLinks.thumbnail;
+            }
+            else
+            {
+                newBook.CoverURL = "/NoCover.png";
+            }
+
+            if (book.volumeInfo.publishedDate != null)
+                newBook.PublishDate = book.volumeInfo.publishedDate;
+            if (book.volumeInfo.publisher != null)
+                newBook.Publisher = book.volumeInfo.publisher;
+
+            if (book.volumeInfo.language != null)
+                newBook.Language = book.volumeInfo.language;
+
+            if (book.volumeInfo.pageCount != null)
+                newBook.PageCount = book.volumeInfo.pageCount;
+
+            if (book.volumeInfo.title != null)
+                newBook.Title = book.volumeInfo.title;
+
+            if (book.id != null)
+                newBook.GoogleBooksID = book.id;
+
+            if (book.volumeInfo.categories != null)
+                newBook.Categories = book.volumeInfo.categories;
+
+            return newBook;
+        }
+
         /// <summary>
         /// Gets books from title, author, ISBN
         /// </summary>
-        /// <param name="title"></param>
+        /// <param name="query">The search term</param>
         /// <param name="count">How many books to return, max is 40</param>
         /// <returns></returns>
         public static async Task<BookObj[]?> GetBook(string query, int count = 40)
@@ -61,49 +119,29 @@
 
             foreach (var book in response.items)
             {
-                BookObj newBook = new BookObj();
-                if (book.volumeInfo.industryIdentifiers != null)
-                    newBook.ISBN13 = ConvertISBN10ToISBN13(book.volumeInfo.industryIdentifiers[0].identifier);//Doesn't matter which ISBN we select, either ISBN 10 or ISBN 13 will work because it will automatically be converted.
-
-                if (book.volumeInfo.authors != null)
-                    newBook.Authors = book.volumeInfo.authors;
-
-                if (book.volumeInfo.imageLinks != null)
-                {
-                    if (book.volumeInfo.imageLinks.smallThumbnail != null)
-                        newBook.CoverURL = book.volumeInfo.imageLinks.smallThumbnail;
-
-                    if (book.volumeInfo.imageLinks.thumbnail != null)
-                        newBook.CoverURL = book.volumeInfo.imageLinks.thumbnail;
-                }
-                else
-                {
-                    newBook.CoverURL = "/NoCover.png";
-                }
-
-
-                if (book.volumeInfo.publishedDate != null)
-                    newBook.PublishDate = book.volumeInfo.publishedDate;
-                if (book.volumeInfo.publisher != null)
-                    newBook.Publisher = book.volumeInfo.publisher;
-
-                if (book.volumeInfo.language != null)
-                    newBook.Language = book.volumeInfo.language;
-
-                if (book.volumeInfo.pageCount != null)
-                    newBook.PageCount = book.volumeInfo.pageCount;
-
-                if (book.volumeInfo.title != null)
-                    newBook.Title = book.volumeInfo.title;
-
-                if (book.id != null)
-                    newBook.GoogleBooksID = book.id;
-
-                books.Add(newBook);
+                books.Add(CreateBook(book));
             }
 
             return books.ToArray();
         }
+
+
+        /// <summary>
+        /// Gets books from title, author, ISBN
+        /// </summary>
+        /// <param name="query">The search term</param>
+        /// <param name="count">How many books to return, max is 40</param>
+        /// <returns></returns>
+        public static async Task<BookObj?> GetBookByID(string googleBooksID)
+        {
+            var response = await GoogleBooks.GoogleBooks.GetBook(googleBooksID);
+            if (response == null)
+                return null;
+            return CreateBook(response);
+        }
+
+
+
 
 
         //https://isbn-information.com/convert-isbn-10-to-isbn-13.html

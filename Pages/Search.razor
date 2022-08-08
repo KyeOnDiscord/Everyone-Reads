@@ -10,17 +10,25 @@
     }
 </style>
 
-
 <h3 style="color:white">Search Books</h3>
 
-<input @bind="SearchString" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="100" />
+<input @bind="SearchString" @onkeydown="@Enter" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="100" />
 <br />
 <br />
 <input @bind="MatchExact" type="checkbox"> <span style="color:white">Match Exact Title</span>
 <br />
 <br />
+@if (IsSearching)
+{
+<span style="color:white">Searching far and wide for @SearchString</span> 
+
+<svg style="fill:white" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>
+<br />
+<br />
+}
 
 <button type="button" class="btn btn-primary" @onclick=Searchbtn>Search</button>
+
 
 
 @if (SearchResults != null)
@@ -42,7 +50,6 @@
             <div class="col">
                 <div class="card">
                     <div class="card-header">@book.Title</div>
-
                     <div class="card-body">
                         <div class="container" style="height:200px">
 
@@ -52,48 +59,62 @@
                                 </div>
                                 <div class="col">
                                     <p>
-                                        Publish Date: @book.PublishDate
-                                        <br>
                                         Publisher: @book.Publisher
                                         <br>
-                                        Authors:@string.Join(",",@book.Authors)
+                                        Authors: @string.Join(",",@book.Authors)
                                     </p>
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
-
                     <div class="card-footer text-muted">
-                        @book.PublishDate
+                        Published: @book.PublishDate
                     </div>
                 </div>
             </div>
         }
 
     </div>
-}
-@code {
 
+}
+
+@code {
 
     private static BookObj[] SearchResults = null;
 
-
     private string? SearchString { get; set; }
     private bool MatchExact { get; set; } = false;
+    private bool IsSearching = false;
 
     private async Task Searchbtn()
     {
-        SearchResults = await BookObj.GetBook(SearchString);
-        if (SearchResults == null)
+        if (IsSearching == false && !string.IsNullOrEmpty(SearchString))
         {
-            SearchResults = new BookObj[] { };
-        }
-    }
+            IsSearching = true;
+            SearchResults = null;//Make the search results null while getting the dataa
+            SearchResults = await BookObj.GetBook(SearchString);
+            if (SearchResults == null)
+                SearchResults = new BookObj[] { };
 
+            await InvokeAsync(StateHasChanged);
+            IsSearching = false;
+        }
+
+    }
     private async Task NavigateTo(string googleBooksID)
     {
         NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
+    }
+
+    public async Task Enter(KeyboardEventArgs e)
+    {
+        if (IsSearching == false && e.Type == "keydown")
+        {
+            if (e.Code == "Enter" || e.Code == "NumpadEnter")
+            {
+                await Searchbtn();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 }

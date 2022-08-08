@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components;
 @using EveryoneReads.Backend
 @using System.Globalization
+@using System.Web;
 @inject IJSRuntime JS
 @page "/book"
 
@@ -13,7 +14,6 @@
 @if (curBook != null)
 {
     <PageTitle>@curBook.Title | Everyone Reads </PageTitle>
-
     <div class="container">
         <div class="row">
             <div class="col">
@@ -31,13 +31,14 @@
                         </div>
                     </div>
                 </div>
-
             </div>
             <div class="col">
                 <h1 class="text-white"><b>@curBook.Title</b></h1>
                 <h4 class="text-white">
                     By: @string.Join(",",@curBook.Authors)
                     <br>
+                    <br>
+                    Categories: @string.Join(",",@curBook.Categories)
                     <br>
                     Pages: @curBook.PageCount
                     <br>
@@ -47,25 +48,20 @@
                     <br>
                     ISBN-13: @curBook.ISBN13
                     <br>
-                    Language: @GetCultureFromTwoLetterCountryCode(@curBook.Language)
-
+                    Language: @curBook.Language
                 </h4>
             </div>
-
         </div>
-
-
     </div>
 }
 @code {
-    ///{BookISBN}
     public string BookISBN { get; set; }
-
     private BookObj curBook { get; set; } = null;
 
     [Inject]
 
     public NavigationManager NavMan { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         string googleBooksID = GetQueryParm("google");
@@ -73,35 +69,27 @@
 
         if (!string.IsNullOrEmpty(googleBooksID))
         {
-            BookObj[] book = await BookObj.GetBook(googleBooksID);
-            if (book != null && book.Length > 0)
-                curBook = book.First(x => x.GoogleBooksID == googleBooksID);
+            BookObj book = await BookObj.GetBookByID(googleBooksID);
+            if (book != null)
+                curBook = book;
         }
         else if (!string.IsNullOrEmpty(isbn))
         {
             BookObj[] book = await BookObj.GetBook(isbn, 1);
-            if (book != null && book.Length > 0)
+            if (book.Length > 0)
                 curBook = book[0];
         }
-
-
     }
 
     string GetQueryParm(string parmName)
     {
         var uriBuilder = new UriBuilder(NavMan.Uri);
-        var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+        var q = HttpUtility.ParseQueryString(uriBuilder.Query);
         return q[parmName] ?? "";
     }
 
     private async Task GoBack()
     {
         await JS.InvokeVoidAsync("history.back");
-    }
-
-    //https://stackoverflow.com/a/43425576/12897035
-    public static string GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
-    {
-        return new CultureInfo(twoLetterISOCountryCode).EnglishName;
     }
 }
