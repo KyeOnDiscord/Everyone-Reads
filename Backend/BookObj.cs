@@ -83,7 +83,11 @@ namespace EveryoneReads.Backend
             }
             else
             {
+#if DEBUG
                 newBook.CoverURL = "/NoCover.png";
+#else
+                newBook.CoverURL = "Everyone-Reads/NoCover.png";
+#endif
             }
 
             if (book.volumeInfo.publishedDate != null)

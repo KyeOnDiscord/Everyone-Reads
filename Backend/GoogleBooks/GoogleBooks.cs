@@ -8,6 +8,10 @@ namespace EveryoneReads.Backend.GoogleBooks
         private const string BaseURL = "https://www.googleapis.com/books/v1";
         private static HttpClient Http = new HttpClient();
 
+        //Google Books API Query Parameters https://developers.google.com/books/docs/v1/using#query-params
+
+
+
         /// <summary>
         /// Fetches a list of books from title
         /// </summary>
