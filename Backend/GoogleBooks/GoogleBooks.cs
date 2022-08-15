@@ -14,36 +14,59 @@ namespace EveryoneReads.Backend.GoogleBooks
         /// <param name="query">Title of the book</param>
         /// <param name="count">Number of books to return, max 40</param>
         /// <returns></returns>
-        public static async Task<BookSearch.Rootobject?> SearchBook(string query, int count = 40)
+        public static async Task<BookSearch.Item[]> SearchBook(string query, int count = 40)
         {
             var resp = await Http.GetAsync($"{BaseURL}/volumes?maxResults={count}&q={query}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<BookSearch.Rootobject>(content);
 
+                var deserializedResp = JsonConvert.DeserializeObject<BookSearch.Rootobject>(content);
+                if (deserializedResp.items != null)
+                    return deserializedResp.items;
             }
 
-            throw new Exception($"Query: {query} , could not be found on Google Books");
+            return new BookSearch.Item[] { };
+            //throw new Exception($"Query: {query} , could not be found on Google Books");
         }
 
 
         /// <summary>
-        /// Gets a single book from it's Google Books ID
+        /// Gets a single book from its Google Books ID
         /// </summary>
         /// <param name="googleBooksID">The google book's ID of the book to return</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task<BookSearch.Item?> GetBook(string googleBooksID)
+        public static async Task<BookSearch.Item> GetBookByGoogleBooksID(string googleBooksID)
         {
             var resp = await Http.GetAsync($"{BaseURL}/volumes/{googleBooksID}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<BookSearch.Item>(content);
-
             }
-            throw new Exception($"Google Book ID: {googleBooksID} , could not be found on Google Books");
+
+            return new BookSearch.Item { };
+            //throw new Exception($"Google Book ID: {googleBooksID} , could not be found on Google Books");
+        }
+
+        /// <summary>
+        /// Gets a single book by its ISBN
+        /// </summary>
+        /// <param name="ISBN">The ISBN of the book to return</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<BookSearch.Item> GetBookByISBN(string ISBN)
+        {
+            var resp = await Http.GetAsync($"{BaseURL}/volumes?q=+isbn:{ISBN}");
+            if (resp.IsSuccessStatusCode)
+            {
+                string content = await resp.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<BookSearch.Rootobject>(content).items[0];
+            }
+
+            return new BookSearch.Item { };
+            //throw new Exception($"Google Book ID: {googleBooksID} , could not be found on Google Books");
         }
 
 

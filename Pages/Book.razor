@@ -69,15 +69,11 @@
 
         if (!string.IsNullOrEmpty(googleBooksID))
         {
-            BookObj book = await BookObj.GetBookByID(googleBooksID);
-            if (book != null)
-                curBook = book;
+            curBook = await BookObj.GetBookByID(googleBooksID);
         }
         else if (!string.IsNullOrEmpty(isbn))
         {
-            BookObj[] book = await BookObj.GetBook(isbn, 1);
-            if (book.Length > 0)
-                curBook = book[0];
+            curBook = await BookObj.GetBookByISBN(isbn);
         }
     }
 

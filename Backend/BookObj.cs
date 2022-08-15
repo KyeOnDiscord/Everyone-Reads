@@ -19,7 +19,7 @@ namespace EveryoneReads.Backend
         /// <summary>
         /// The book's cover's url
         /// </summary>
-        public string CoverURL { get; set; } = "";
+        public string CoverURL { get; set; } = string.Empty;
 
         /// <summary>
         /// The book's publish date
@@ -51,6 +51,13 @@ namespace EveryoneReads.Backend
         public BookObj() { }
 
 
+        public static BookObj DummyBook()
+        {
+            BookObj bookObj = new();
+            bookObj.Title = "Unknown Book";
+            bookObj.PageCount = 0;
+            return bookObj;
+        }
 
         /// <summary>
         /// Converts google's book item to this project's BookObj class.
@@ -108,21 +115,14 @@ namespace EveryoneReads.Backend
         /// <param name="query">The search term</param>
         /// <param name="count">How many books to return, max is 40</param>
         /// <returns></returns>
-        public static async Task<BookObj[]?> GetBook(string query, int count = 40)
+        public static async Task<ICollection<BookObj>> GetBook(string query, int count = 40)
         {
-            var response = await GoogleBooks.GoogleBooks.SearchBook(query, count);
-            if (response == null || response.items == null)
-            {
-                return null;
-            }
-            List<BookObj> books = new();
-
-            foreach (var book in response.items)
-            {
+            var googleBooksList = await GoogleBooks.GoogleBooks.SearchBook(query, count);
+            ICollection<BookObj> books = new List<BookObj>();
+            foreach (var book in googleBooksList)
                 books.Add(CreateBook(book));
-            }
 
-            return books.ToArray();
+            return books;
         }
 
 
@@ -134,14 +134,33 @@ namespace EveryoneReads.Backend
         /// <returns></returns>
         public static async Task<BookObj?> GetBookByID(string googleBooksID)
         {
-            var response = await GoogleBooks.GoogleBooks.GetBook(googleBooksID);
-            if (response == null)
-                return null;
-            return CreateBook(response);
+            var bookData = await GoogleBooks.GoogleBooks.GetBookByGoogleBooksID(googleBooksID);
+            if (!string.IsNullOrEmpty(bookData.volumeInfo.title))
+            {
+                //Successfully obtained book
+                return CreateBook(bookData);
+            }
+            else
+            {
+                //Invalid book so we just return a 'dummy' book.
+                return BookObj.DummyBook();
+            }
         }
 
-
-
+        public static async Task<BookObj?> GetBookByISBN(string ISBN)
+        {
+            var bookData = await GoogleBooks.GoogleBooks.GetBookByISBN(ISBN);
+            if (!string.IsNullOrEmpty(bookData.volumeInfo.title))
+            {
+                //Successfully obtained book
+                return CreateBook(bookData);
+            }
+            else
+            {
+                //Invalid book so we just return a 'dummy' book.
+                return BookObj.DummyBook();
+            }
+        }
 
 
         //https://isbn-information.com/convert-isbn-10-to-isbn-13.html
