@@ -15,7 +15,24 @@
 <input @bind="SearchString" @onkeydown="@Enter" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="100" />
 <br />
 <br />
+
+<form>
+    <span style="color:white">Book Language: </span>
+    <select @bind="BookLanguage">
+        <option value="en">English</option>
+        @foreach (var lang in Util.GetLanguageList().Where(x => x.Alpha2 != "en"))
+        {
+            <option value="@lang.Alpha2">@lang.Name</option>
+        }
+    </select>
+    <br><br>
+</form>
+
+
 <input @bind="MatchExact" type="checkbox"> <span style="color:white">Match Exact Title</span>
+
+
+
 <br />
 <br />
 @if (IsSearching)
@@ -28,7 +45,6 @@
 }
 
 <button type="button" class="btn btn-primary" @onclick=Searchbtn>Search</button>
-
 
 
 @if (SearchResults != null)
@@ -73,10 +89,10 @@
                         <div class="container">
                             <div class="row">
                                 <div class="col">
-                                    <button class="btn btn-primary rounded-pill" style="background:#A088FF;color:#FFF;border-color:#A088FF">Add to Wishlist</button>
+                                    <button class="btn btn-primary rounded-pill" style="background:#A088FF;color:#FFF;border-color:#A088FF" @onclick="() => Util.Wishlist.Add(book)">Add to Wishlist</button>
                                 </div>
                                 <div class="col">
-                                    <button class="btn btn-primary rounded-pill" style="background:#8263FF; color:#FFF;border-color:#8263FF">Add to my books</button>
+                                    <button class="btn btn-primary rounded-pill" style="background:#8263FF; color:#FFF;border-color:#8263FF" @onclick="() => Util.MyBooks.Add(book)">Add to my books</button>
                                 </div>
                             </div>
                         </div>
@@ -93,9 +109,16 @@
 
 @code {
 
+
     private static ICollection<BookObj> SearchResults = null;
 
     private string? SearchString { get; set; }
+
+    /// <summary>
+    /// The 2 letter language code for the book language
+    /// </summary>
+    private string BookLanguage { get; set; } = "en";
+
     private bool MatchExact { get; set; } = false;
     private bool IsSearching = false;
 
@@ -105,7 +128,7 @@
         {
             IsSearching = true;
             SearchResults = null;//Make the search results null while getting the dataa
-            SearchResults = await BookObj.GetBook(SearchString);
+            SearchResults = await BookObj.GetBook(SearchString, 40, Util.GetLanguageList().First(x => x.Alpha2.Equals(BookLanguage)));
             if (SearchResults == null)
                 SearchResults = new BookObj[] { };
 

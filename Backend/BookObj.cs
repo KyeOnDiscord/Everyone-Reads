@@ -1,6 +1,9 @@
-﻿using System.Drawing;
+﻿using ISOLib.Model;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Net;
+using System.Runtime.CompilerServices;
+using static System.Net.WebRequestMethods;
 
 namespace EveryoneReads.Backend
 {
@@ -27,7 +30,7 @@ namespace EveryoneReads.Backend
         public string PublishDate { get; set; }
 
         /// <summary>
-        /// THe book's language
+        /// The book's language
         /// </summary>
         public string Language { get; set; }
 
@@ -119,9 +122,9 @@ namespace EveryoneReads.Backend
         /// <param name="query">The search term</param>
         /// <param name="count">How many books to return, max is 40</param>
         /// <returns></returns>
-        public static async Task<ICollection<BookObj>> GetBook(string query, int count = 40)
+        public static async Task<ICollection<BookObj>> GetBook(string query, int count = 40, Language lang = null)
         {
-            var googleBooksList = await GoogleBooks.GoogleBooks.SearchBook(query, count);
+            var googleBooksList = await GoogleBooks.GoogleBooks.SearchBook(query, count, lang);
             ICollection<BookObj> books = new List<BookObj>();
             foreach (var book in googleBooksList)
                 books.Add(CreateBook(book));

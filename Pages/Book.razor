@@ -48,7 +48,7 @@
                     <br>
                     ISBN-13: @curBook.ISBN13
                     <br>
-                    Language: @curBook.Language
+                    Language: @Util.GetLanguageList().First(x => x.Alpha2.Equals(curBook.Language)).Name
                 </h4>
             </div>
         </div>

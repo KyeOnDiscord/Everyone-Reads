@@ -1,4 +1,6 @@
 ﻿@page "/wishlist"
+@using EveryoneReads.Backend
+@inject NavigationManager NavMan
 
 <h3 style="color:white">Wishlist</h3>
 
@@ -12,6 +14,56 @@
 
 
 
-@code {
+<div class="row row-cols-1 row-cols-sm-4 g-2">
+    @foreach (var book in Util.Wishlist)
+    {
 
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    @book.Title
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-primary rounded-pill" style="background:red; color:#FFF;border-color:#FFF" @onclick="() => Util.MyBooks.Remove(book)">X</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="container" style="height:200px">
+
+                        <div class="row">
+                            <div class="col-6">
+                                <img @onclick="@(e => NavigateTo(@book.GoogleBooksID))" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
+                            </div>
+                            <div class="col">
+                                <p class="text-sm-start">
+                                    Publisher: @book.Publisher
+                                    <br>
+                                    Authors: @string.Join(",",@book.Authors)
+                                    <br>
+                                    Published: @book.PublishDate
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-primary" style="width:100%;background:grey; color:#FFF;border-color:#FFF" @onclick="() => Util.MyBooks.Add(book)">Price: $5</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private async Task NavigateTo(string googleBooksID)
+    {
+        NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
+    }
 }

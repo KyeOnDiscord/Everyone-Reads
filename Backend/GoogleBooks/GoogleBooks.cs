@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json;
+using ISOLib;
+using ISOLib.Model;
+using ISOLib.ISO;
 
 namespace EveryoneReads.Backend.GoogleBooks
 {
@@ -6,11 +9,8 @@ namespace EveryoneReads.Backend.GoogleBooks
     public static class GoogleBooks
     {
         private const string BaseURL = "https://www.googleapis.com/books/v1";
-        private static HttpClient Http = new HttpClient();
 
         //Google Books API Query Parameters https://developers.google.com/books/docs/v1/using#query-params
-
-
 
         /// <summary>
         /// Fetches a list of books from title
@@ -18,18 +18,26 @@ namespace EveryoneReads.Backend.GoogleBooks
         /// <param name="query">Title of the book</param>
         /// <param name="count">Number of books to return, max 40</param>
         /// <returns></returns>
-        public static async Task<BookSearch.Item[]> SearchBook(string query, int count = 40)
+        public static async Task<ICollection<BookSearch.Item>> SearchBook(string query, int count = 40, Language language = null)
         {
-            var resp = await Http.GetAsync($"{BaseURL}/volumes?maxResults={count}&q={query}");
+            string LanguageQueryParameter = string.Empty;
+            if (language != null)
+                LanguageQueryParameter = $"&langRestrict={language.Alpha2}";
+
+            var resp = await Util.Http.GetAsync($"{BaseURL}/volumes?maxResults={count}&q={query}{LanguageQueryParameter}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
 
                 var deserializedResp = JsonConvert.DeserializeObject<BookSearch.Rootobject>(content);
                 if (deserializedResp.items != null)
-                    return deserializedResp.items;
+                {
+                    if (language != null)
+                        return deserializedResp.items.Where(x => x.volumeInfo.language.Equals(language.Alpha2)).ToList();
+                    else
+                        return deserializedResp.items;
+                }
             }
-
             return new BookSearch.Item[] { };
             //throw new Exception($"Query: {query} , could not be found on Google Books");
         }
@@ -43,7 +51,7 @@ namespace EveryoneReads.Backend.GoogleBooks
         /// <exception cref="Exception"></exception>
         public static async Task<BookSearch.Item> GetBookByGoogleBooksID(string googleBooksID)
         {
-            var resp = await Http.GetAsync($"{BaseURL}/volumes/{googleBooksID}");
+            var resp = await Util.Http.GetAsync($"{BaseURL}/volumes/{googleBooksID}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
@@ -62,7 +70,7 @@ namespace EveryoneReads.Backend.GoogleBooks
         /// <exception cref="Exception"></exception>
         public static async Task<BookSearch.Item> GetBookByISBN(string ISBN)
         {
-            var resp = await Http.GetAsync($"{BaseURL}/volumes?q=+isbn:{ISBN}");
+            var resp = await Util.Http.GetAsync($"{BaseURL}/volumes?q=+isbn:{ISBN}");
             if (resp.IsSuccessStatusCode)
             {
                 string content = await resp.Content.ReadAsStringAsync();
