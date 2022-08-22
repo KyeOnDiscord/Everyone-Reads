@@ -26,7 +26,17 @@
                                 </div>
                             </div>
                             <div class="left-side">
-                                <img src="/BookSpine.png">
+                                @if (Debug)
+                                {
+                                    <img src="/BookSpine.png">
+                                }
+                                else
+                                {
+                                    <img src="Everyone/BookSpine.png">
+                                }
+
+
+
                             </div>
                         </div>
                     </div>
@@ -70,6 +80,11 @@
 @code {
     public string BookISBN { get; set; }
     private BookObj curBook { get; set; } = null;
+#if DEBUG
+    private bool Debug = true;
+#else
+    private bool Debug = false;
+#endif
 
     [Inject]
 
