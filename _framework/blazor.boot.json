@@ -7,7 +7,7 @@
   "linkerEnabled": true,
   "resources": {
     "assembly": {
-      "EveryoneReads.dll": "sha256-i5ancuiGKEe0yR5iJRrVxaRcHRxheKlL+abAU1WRrZk=",
+      "EveryoneReads.dll": "sha256-X19K7vDd7CVWBCxxQrVhi6mlfIlisQiL3rlM3uNfJiY=",
       "ISOLib.dll": "sha256-V+5E+TwkA2S5mN7hSbEn6VPGKNM\/EMslJc5kYL2NGXA=",
       "Microsoft.AspNetCore.Components.dll": "sha256-Wz9r7Z4WGrrM0Gamz\/qp4NJIXz+dsPlV\/rREfTsDqGw=",
       "Microsoft.AspNetCore.Components.Web.dll": "sha256-ZOPYLIRdHnwrHdwpTTQHkOVDkAlIzTUirKpQGRiRgjY=",
