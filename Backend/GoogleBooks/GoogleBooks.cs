@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using ISOLib;
 using ISOLib.Model;
-using ISOLib.ISO;
 
 namespace EveryoneReads.Backend.GoogleBooks
 {
@@ -39,7 +37,6 @@ namespace EveryoneReads.Backend.GoogleBooks
                 }
             }
             return new BookSearch.Item[] { };
-            //throw new Exception($"Query: {query} , could not be found on Google Books");
         }
 
 
@@ -59,7 +56,6 @@ namespace EveryoneReads.Backend.GoogleBooks
             }
 
             return new BookSearch.Item { };
-            //throw new Exception($"Google Book ID: {googleBooksID} , could not be found on Google Books");
         }
 
         /// <summary>
@@ -78,7 +74,6 @@ namespace EveryoneReads.Backend.GoogleBooks
             }
 
             return new BookSearch.Item { };
-            //throw new Exception($"Google Book ID: {googleBooksID} , could not be found on Google Books");
         }
 
 

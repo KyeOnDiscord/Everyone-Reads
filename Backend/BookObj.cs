@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Net;
 using System.Runtime.CompilerServices;
-using static System.Net.WebRequestMethods;
 
 namespace EveryoneReads.Backend
 {
@@ -86,11 +85,7 @@ namespace EveryoneReads.Backend
             }
             else
             {
-#if DEBUG
                 newBook.CoverURL = "/NoCover.png";
-#else
-                newBook.CoverURL = "Everyone-Reads/NoCover.png";
-#endif
             }
 
             if (book.volumeInfo.publishedDate != null)
@@ -101,7 +96,7 @@ namespace EveryoneReads.Backend
             if (book.volumeInfo.language != null)
                 newBook.Language = book.volumeInfo.language;
 
-            if (book.volumeInfo.pageCount != null)
+            if (book.volumeInfo.pageCount > 0)
                 newBook.PageCount = book.volumeInfo.pageCount;
 
             if (book.volumeInfo.title != null)

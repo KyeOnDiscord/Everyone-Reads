@@ -1,17 +1,67 @@
 ﻿@page "/mybooks"
+@using EveryoneReads.Backend
+@inject NavigationManager NavMan
 
 <h3 style="color:white">My Books</h3>
 
-<style>
 
+<style>
     body {
         background: linear-gradient(320deg, rgba(155,234,255,1) 0%, rgba(101,61,255,1) 0%, rgba(162,139,255,1) 100%);
     }
 </style>
 
 
+<div class="row row-cols-1 row-cols-sm-4 g-2">
+    @foreach (var book in Util.MyBooks)
+    {
 
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-10"><span class="d-inline-block text-truncate" style="max-width: 310px">@book.Title</span></div>
+                        <div class="col">
+                            <button class="btn btn-primary-outline" style="color:red" @onclick="(e => Util.MyBooks.Remove(book))">X</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="container" style="height:200px">
+
+                        <div class="row">
+                            <div class="col-6">
+                                <img @onclick="@(e => NavigateTo(@book.GoogleBooksID))" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
+                            </div>
+                            <div class="col">
+                                <p class="text-sm-start">
+                                    Publisher: @book.Publisher
+                                    <br>
+                                    Authors: @string.Join(",",@book.Authors)
+                                    <br>
+                                    Published: @book.PublishDate
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-primary" style="width:100%;background-color:mediumpurple; color:#FFF;border-color:#FFF">Sell this book</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
-
+    private async Task NavigateTo(string googleBooksID)
+    {
+        NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
+    }
 }

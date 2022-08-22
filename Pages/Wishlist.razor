@@ -21,10 +21,10 @@
         <div class="col">
             <div class="card">
                 <div class="card-header">
-                    @book.Title
                     <div class="row">
+                        <div class="col-10"><span class="d-inline-block text-truncate" style="max-width: 310px">@book.Title</span></div>
                         <div class="col">
-                            <button class="btn btn-primary rounded-pill" style="background:red; color:#FFF;border-color:#FFF" @onclick="() => Util.MyBooks.Remove(book)">X</button>
+                            <button class="btn btn-primary-outline" style="color:red" @onclick="(e => Util.Wishlist.Remove(book))">X</button>
                         </div>
                     </div>
                 </div>
