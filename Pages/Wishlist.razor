@@ -2,6 +2,7 @@
 @using EveryoneReads.Backend
 @inject NavigationManager NavMan
 
+<PageTitle>Wishlist | Everyone Reads</PageTitle>
 <h3 style="color:white">Wishlist</h3>
 
 
@@ -51,7 +52,7 @@
                     <div class="container">
                         <div class="row">
                             <div class="col">
-                                <button class="btn btn-primary" style="width:100%;background:grey; color:#FFF;border-color:#FFF" @onclick="() => Util.MyBooks.Add(book)">Price: $5</button>
+                                <button class="btn btn-primary" style="width:100%;background:grey; color:#FFF;border-color:#FFF" @onclick="() => Util.MyBooks.Add(book)">Price: $@book.Price </button>
                             </div>
                         </div>
                     </div>
@@ -59,9 +60,28 @@
             </div>
         </div>
     }
+    <br />
+
 </div>
 
+<div style="position:fixed;bottom:50px;right:400px;font-family:Roboto">
+    <span class="fs-1 text-white">Total: $@TotalPrice</span>
+    <button type="button" style="margin-left:50px;bottom:50px" class="fs-1 btn btn-success btn-lg rounded-3 fw-bold">Purchase</button>
+</div>
+
+
 @code {
+
+    private float TotalPrice = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var item in Util.Wishlist)
+        {
+            TotalPrice += item.Price;
+        }
+    }
+
     private async Task NavigateTo(string googleBooksID)
     {
         NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);

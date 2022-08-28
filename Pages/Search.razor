@@ -56,7 +56,7 @@
     <div class="row row-cols-1 row-cols-sm-4 g-2">
         @foreach (var book in SearchResults)
         {
-            @if (MatchExact)
+            @if (MatchExact && !string.IsNullOrEmpty(SearchString))
             {
                 if (!book.Title.ToLower().Contains(SearchString.ToLower()))
                 {
@@ -71,7 +71,7 @@
 
                             <div class="row">
                                 <div class="col-6">
-                                    <img @onclick="@(e => NavigateTo(@book.GoogleBooksID))" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
+                                    <img @onclick="@(e => NavigateTo(@book))" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
                                 </div>
                                 <div class="col">
                                     <p class="text-sm-start">
@@ -96,8 +96,6 @@
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>
@@ -117,7 +115,7 @@
     /// <summary>
     /// The 2 letter language code for the book language
     /// </summary>
-    private string BookLanguage { get; set; } = "en";
+    public static string BookLanguage { get; set; } = "en";
 
     private bool MatchExact { get; set; } = false;
     private bool IsSearching = false;
@@ -135,11 +133,16 @@
             await InvokeAsync(StateHasChanged);
             IsSearching = false;
         }
-
     }
     private async Task NavigateTo(string googleBooksID)
     {
         NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
+    }
+
+    private async Task NavigateTo(BookObj bookObj)
+    {
+        Book.curBook = bookObj;
+        NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + bookObj.GoogleBooksID);
     }
 
     public async Task Enter(KeyboardEventArgs e)

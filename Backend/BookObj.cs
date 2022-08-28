@@ -44,6 +44,11 @@ namespace EveryoneReads.Backend
         public int PageCount { get; set; }
 
         /// <summary>
+        /// The book's page count
+        /// </summary>
+        public float Price { get; set; } = 5.0f;
+
+        /// <summary>
         /// The book's title
         /// </summary>
         public string Title { get; set; }
@@ -108,6 +113,11 @@ namespace EveryoneReads.Backend
             if (book.volumeInfo.categories != null)
                 newBook.Categories = book.volumeInfo.categories;
 
+            if (book.saleInfo.saleability == "FOR_SALE")
+            {
+                newBook.Price = book.saleInfo.retailPrice.amount;
+            }
+
             return newBook;
         }
 
@@ -120,6 +130,23 @@ namespace EveryoneReads.Backend
         public static async Task<ICollection<BookObj>> GetBook(string query, int count = 40, Language lang = null)
         {
             var googleBooksList = await GoogleBooks.GoogleBooks.SearchBook(query, count, lang);
+            ICollection<BookObj> books = new List<BookObj>();
+            foreach (var book in googleBooksList)
+                books.Add(CreateBook(book));
+
+            return books;
+        }
+
+
+        /// <summary>
+        /// Gets books by Author
+        /// </summary>
+        /// <param name="author">The author</param>
+        /// <param name="count">How many books to return, max is 40</param>
+        /// <returns></returns>
+        public static async Task<ICollection<BookObj>> GetBookByAuthor(string author, int count = 40, Language lang = null)
+        {
+            var googleBooksList = await GoogleBooks.GoogleBooks.GetBookByAuthor(author, count, lang);
             ICollection<BookObj> books = new List<BookObj>();
             foreach (var book in googleBooksList)
                 books.Add(CreateBook(book));
@@ -163,6 +190,7 @@ namespace EveryoneReads.Backend
                 return BookObj.DummyBook();
             }
         }
+
 
 
         //https://isbn-information.com/convert-isbn-10-to-isbn-13.html

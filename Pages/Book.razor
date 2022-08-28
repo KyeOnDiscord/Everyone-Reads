@@ -14,7 +14,7 @@
 @if (curBook != null)
 {
     <PageTitle>@curBook.Title | Everyone Reads </PageTitle>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col">
                 <div class="col">
@@ -52,47 +52,110 @@
                 </h4>
             </div>
         </div>
-        <div class="container-fluid rounded" style="background-color:#A28BFF">
-            <br>
-            <h3 class="text-white" style="font-family:Roboto">More by @string.Join(",",@curBook.Authors)</h3>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <p></p>
-        </div>
+        @if (SameAuthor != null)
+        {
+            <div class="container-fluid rounded-3" style="background-color:#A28BFF">
+                <br>
+                <h3 class="text-white" style="font-family:Roboto">More by @string.Join(",",@curBook.Authors)</h3>
+                <div class="row row-cols-1 row-cols-sm-4 g-2">
+                    @foreach (var book in SameAuthor)
+                    {
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-header"><span class="d-inline-block text-truncate" style="max-width: 300px">@book.Title</span></div>
+                                <div class="card-body">
+                                    <div class="container" style="height:200px">
+
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <img @onclick="@(e => curBook = book)" src="@book.CoverURL" class="card-img-top img-fluid" alt="@book.Title's cover" style="height:80%;width:auto;object-fit:fill;cursor:pointer">
+                                            </div>
+                                            <div class="col">
+                                                <p class="text-sm-start">
+                                                    Publisher: @book.Publisher
+                                                    <br>
+                                                    Authors: @string.Join(",",@book.Authors)
+                                                    <br>
+                                                    Published: @book.PublishDate
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer text-muted">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col">
+                                                <button class="btn btn-primary rounded-pill" style="background:#A088FF;color:#FFF;border-color:#A088FF" @onclick="() => Util.Wishlist.Add(book)">Add to Wishlist</button>
+                                            </div>
+                                            <div class="col">
+                                                <button class="btn btn-primary rounded-pill" style="background:#8263FF; color:#FFF;border-color:#8263FF" @onclick="() => Util.MyBooks.Add(book)">Add to my books</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                <br>
+            </div>
+            <br />
+            <br />
+        }
+
     </div>
 }
 @code {
     public string BookISBN { get; set; }
-    private BookObj curBook { get; set; } = null;
-#if DEBUG
-    private bool Debug = true;
-#else
-    private bool Debug = false;
-#endif
+    public static BookObj curBook { get; set; } = null;
 
+    private ICollection<BookObj> SameAuthor { get; set; } = null;
     [Inject]
 
     public NavigationManager NavMan { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        string googleBooksID = GetQueryParm("google");
-        string isbn = GetQueryParm("isbn");
+        if (curBook == null)
+        {
+            string googleBooksID = GetQueryParm("google");
+            string isbn = GetQueryParm("isbn");
 
-        if (!string.IsNullOrEmpty(googleBooksID))
-        {
-            curBook = await BookObj.GetBookByID(googleBooksID);
+            if (!string.IsNullOrEmpty(googleBooksID))
+            {
+                curBook = await BookObj.GetBookByID(googleBooksID);
+            }
+            else if (!string.IsNullOrEmpty(isbn))
+            {
+                curBook = await BookObj.GetBookByISBN(isbn);
+            }
+
         }
-        else if (!string.IsNullOrEmpty(isbn))
+
+        if (curBook.Authors.Length > 0 && SameAuthor == null)
         {
-            curBook = await BookObj.GetBookByISBN(isbn);
+            IEnumerable<BookObj> tmp = await BookObj.GetBookByAuthor(curBook.Authors[0], 40, Util.GetLanguageList().First(x => x.Alpha2.Equals(Search.BookLanguage)));
+            SameAuthor = GetRandom<BookObj>(tmp, 4).ToList();
         }
+    }
+
+
+    public static IEnumerable<T> GetRandom<T>(IEnumerable<T> list, int count)
+    {
+        if (count <= 0)
+            yield break;
+        var r = new Random();
+        int limit = (count * 10);
+        foreach (var item in list.OrderBy(x => r.Next(0, limit)).Take(count))
+            yield return item;
+    }
+
+
+    private async Task NavigateTo(string googleBooksID)
+    {
+        NavMan.NavigateTo(NavMan.BaseUri + "book?google=" + googleBooksID);
     }
 
     string GetQueryParm(string parmName)
