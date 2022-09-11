@@ -236,7 +236,8 @@
         }
         else
         {
-            BarcodeBook = BookObj.DummyBook();
+            BarcodeBook = null;
+            ReadBarcode = $"Could not read barcode ({e.File.Name}), photo was not clear enough";
         }
         
         StateHasChanged();
