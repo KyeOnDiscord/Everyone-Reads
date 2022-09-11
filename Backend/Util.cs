@@ -9,12 +9,8 @@ namespace EveryoneReads.Backend
 
         public static List<BookObj> Wishlist = new();
         public static List<BookObj> MyBooks = new();
+        private static IEnumerable<Language> iso639 = new ISO639().GetArray();
 
-
-        public static IEnumerable<Language> GetLanguageList()
-        {
-            ISO<Language> iso639 = new ISO639();
-            return iso639.GetArray();
-        }
+        public static IEnumerable<Language> GetLanguageList() => iso639;
     }
 }

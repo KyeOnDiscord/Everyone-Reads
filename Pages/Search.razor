@@ -1,5 +1,6 @@
 ﻿@page "/search"
 @using EveryoneReads.Backend
+@using System.Drawing
 @inject NavigationManager NavMan
 <PageTitle>Search Books | Everyone Reads </PageTitle>
 
@@ -10,12 +11,15 @@
     }
 </style>
 
-<h3 style="color:white">Search Books</h3>
-
-<input @bind="SearchString" @onkeydown="@Enter" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="100" />
+<h2 style="color:white">Search Books</h2>
 <br />
-<br />
-
+<div class="container-fluid">
+    <div class="row g-2">
+        <div class="col">
+            <p class="text-white fs-3">Search by Name:</p>
+            <input @bind="SearchString" @onkeydown="@Enter" type="search" placeholder="Search by title, author, publisher or ISBN 10/13" size="75" />
+            <br />
+            <br />
 <form>
     <span style="color:white">Book Language: </span>
     <select @bind="BookLanguage">
@@ -45,6 +49,56 @@
 }
 
 <button type="button" class="btn btn-primary" @onclick=Searchbtn>Search</button>
+
+
+        </div>
+        <div class="col">
+            <p class="text-white fs-3">Search by Barcode:</p>
+            <InputFile class="form-control"  OnChange="@LoadFiles" />
+
+            <p class="text-white">Barcode: @ReadBarcode</p>
+            @if (BarcodeBook != null)
+            {
+                <div class="card">
+                    <div class="card-header"><span class="d-inline-block text-truncate" style="max-width: 370px">@BarcodeBook.Title</span></div>
+                <div class="card-body">
+                    <div class="container" style="height:200px">
+
+                        <div class="row">
+                            <div class="col-6">
+                                    <img @onclick="@(e => NavigateTo(@BarcodeBook))" src="@BarcodeBook.CoverURL" class="card-img-top img-fluid" alt="@BarcodeBook.Title's cover" style="height:100%;width:auto;object-fit:fill;cursor:pointer">
+                            </div>
+                            <div class="col">
+                                <p class="text-sm-start">
+                                        Publisher: @BarcodeBook.Publisher
+                                    <br>
+                                        Authors: @string.Join(",",@BarcodeBook.Authors)
+                                    <br>
+                                        Published: @BarcodeBook.PublishDate
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col">
+                                    <button class="btn btn-primary rounded-pill" style="background:#A088FF;color:#FFF;border-color:#A088FF" @onclick="() => Util.Wishlist.Add(BarcodeBook)">Add to Wishlist</button>
+                            </div>
+                            <div class="col">
+                                    <button class="btn btn-primary rounded-pill" style="background:#8263FF; color:#FFF;border-color:#8263FF" @onclick="() => Util.MyBooks.Add(BarcodeBook)">Add to my books</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+
 
 
 @if (SearchResults != null)
@@ -116,7 +170,8 @@
     /// The 2 letter language code for the book language
     /// </summary>
     public static string BookLanguage { get; set; } = "en";
-
+    public static string ReadBarcode { get; set; } = "";
+    public static BookObj BarcodeBook { get; set; }
     private bool MatchExact { get; set; } = false;
     private bool IsSearching = false;
 
@@ -156,4 +211,35 @@
             }
         }
     }
+
+    //Use server side app for barcode OCR
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        string ReceivedBarcode = await BarcodeReader.ReadISBNBarcode(e.File.OpenReadStream(10000000L));
+        if (ReceivedBarcode != null)
+        {
+            //Convert the ISBN to ISBN 13 if it's ISBN10
+            ReadBarcode = BookObj.ConvertISBN10ToISBN13(ReceivedBarcode);
+            if (ReadBarcode != null)
+            {
+                BookObj searchedBook = await BookObj.GetBookByISBN(ReadBarcode);
+                if (searchedBook != null && searchedBook.Title != "Unknown Book" && searchedBook.PageCount != 0)
+                {
+                    BarcodeBook = searchedBook;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            else
+            {
+                BarcodeBook = BookObj.DummyBook();
+            }
+        }
+        else
+        {
+            BarcodeBook = BookObj.DummyBook();
+        }
+        
+        StateHasChanged();
+    }
+
 }

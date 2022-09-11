@@ -72,13 +72,17 @@
 
 @code {
 
-    private float TotalPrice = 0;
-
-    protected override async Task OnInitializedAsync()
+    private float TotalPrice
     {
-        foreach (var item in Util.Wishlist)
+
+        get
         {
-            TotalPrice += item.Price;
+            float tmp = 0;
+            foreach (var item in Util.Wishlist)
+            {
+                tmp += item.Price;
+            }
+            return tmp;
         }
     }
 
